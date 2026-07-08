@@ -205,8 +205,8 @@ export function useChat() {
                     chatMsg.toolCalls = msg.toolCalls.map((tc) => ({
                         name: tc.name,
                         input: tc.input,
-                        ...(tc.ok !== undefined && { ok: tc.ok }),
-                        ...(tc.preview !== undefined && { preview: tc.preview }),
+                        ...('ok' in tc && tc.ok !== undefined && { ok: tc.ok }),
+                        ...('preview' in tc && tc.preview !== undefined && { preview: tc.preview }),
                     }));
                 }
             }

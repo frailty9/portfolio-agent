@@ -85,7 +85,7 @@ export function parseOpenApiSpec(spec: unknown): PortfolioApiEndpoint[] {
                         const param = p as Record<string, unknown>;
                         return {
                             name: String(param.name ?? ''),
-                            in: (param.in as string) ?? 'query',
+                            in: ((param.in as string) ?? 'query') as 'query' | 'path' | 'header' | 'body',
                             type: String(
                                 (param.schema as Record<string, unknown>)?.type ?? 'string',
                             ),

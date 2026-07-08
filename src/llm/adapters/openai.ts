@@ -5,7 +5,7 @@
  * 支持 OpenAI API 格式的各种第三方服务。
  */
 
-import type { LlmAdapter, LlmRequest, LlmResponse, LlmMessage, LlmUsage } from '../types'
+import type { LlmAdapter, LlmRequest, LlmResponse, LlmUsage } from '../types'
 
 interface OpenAIMessage {
   role: 'system' | 'user' | 'assistant' | 'tool'

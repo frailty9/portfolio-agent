@@ -45,8 +45,8 @@ export async function loadConfig(): Promise<AppConfig> {
         cached = { ...DEFAULTS };
     }
 
-    validateConfig(cached);
-    return cached;
+    validateConfig(cached!);
+    return cached!;
 }
 
 export function getConfig(): AppConfig {

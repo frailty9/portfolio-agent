@@ -6,7 +6,7 @@ import type { ToolDefinition } from './types'
 
 const registry = new Map<string, ToolDefinition>()
 
-export function registerTool(tool: ToolDefinition): void {
+export function registerTool(tool: ToolDefinition<any, any>): void {
   registry.set(tool.name, tool)
 }
 

@@ -38,7 +38,6 @@ export async function parseMarkdownWithSubAgent(
 
     // 限制切片数
     const cappedSections = sections.slice(0, MAX_SECTIONS);
-    const totalSections = sections.length;
 
     // Phase 1: 目录索引 — 让 LLM 判断哪些 section 可能包含 API
     const relevantIndices = await getRelevantSectionIndices(cappedSections);
@@ -187,8 +186,9 @@ function validateEndpoints(items: unknown[]): PortfolioApiEndpoint[] {
     return items
         .filter((item): item is Record<string, unknown> => {
             if (!item || typeof item !== 'object') return false;
-            const m = String(item.method ?? '').toUpperCase();
-            return VALID_METHODS.includes(m) && typeof item.path === 'string';
+            const obj = item as Record<string, unknown>;
+            const m = String(obj.method ?? '').toUpperCase();
+            return VALID_METHODS.includes(m) && typeof obj.path === 'string';
         })
         .map((item) => {
             const endpoint: PortfolioApiEndpoint = {

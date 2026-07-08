@@ -4,7 +4,7 @@
  * 通过 /api/llm/anthropic 代理转发，前端不持有 API key。
  */
 
-import type { LlmAdapter, LlmRequest, LlmResponse, LlmMessage, LlmUsage } from '../types'
+import type { LlmAdapter, LlmRequest, LlmResponse, LlmUsage } from '../types'
 
 interface AnthropicMessage {
   role: 'user' | 'assistant'

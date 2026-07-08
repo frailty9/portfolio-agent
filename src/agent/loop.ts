@@ -13,7 +13,7 @@ import { chat } from '@/llm/index'
 import { findTool } from '@/tools/index'
 import { pushMessage } from '@/session/memory'
 import { refreshSystemMessage } from '@/prompt/index'
-import type { LlmMessage, LlmResponse } from '@/llm/types'
+import type { LlmMessage } from '@/llm/types'
 import type { AgentState, AgentStopReason, AgentTurnResult } from './types'
 
 const MAX_TOOLS_PER_TURN = 4

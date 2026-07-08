@@ -58,8 +58,8 @@ function truncate(text: string | undefined, max: number): string {
         <button
           class="delete-btn"
           :disabled="isGenerating"
-          @click.stop="emit('delete', session.sessionId)"
           title="删除会话"
+          @click.stop="emit('delete', session.sessionId)"
         >
           ×
         </button>

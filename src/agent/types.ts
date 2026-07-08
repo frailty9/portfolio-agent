@@ -2,7 +2,7 @@
  * Agent 相关类型。
  */
 
-import type { LlmMessage, LlmResponse, LlmToolSpec } from '@/llm/types';
+import type { LlmResponse, LlmToolSpec } from '@/llm/types';
 import type { SessionMemory } from '@/session/types';
 import type { ToolContext } from '@/tools/types';
 
