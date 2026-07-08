@@ -14,7 +14,6 @@ const {
     configLoaded,
     init,
     sendMessage,
-    clearMessages,
     newSession,
     loadSessionById,
     deleteSessionById,
@@ -53,13 +52,6 @@ const sessionTitle = computed(() => {
         <main class="content">
             <div class="content-header">
                 <h2 class="session-title">{{ sessionTitle }}</h2>
-                <button
-                    class="clear-btn"
-                    @click="clearMessages"
-                    :disabled="isGenerating"
-                >
-                    清空
-                </button>
             </div>
 
             <ChatContainer
@@ -137,28 +129,6 @@ const sessionTitle = computed(() => {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.clear-btn {
-    padding: 4px 12px;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--color-text-secondary);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-    flex-shrink: 0;
-}
-
-.clear-btn:hover:not(:disabled) {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-}
-
-.clear-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 .message-area {
