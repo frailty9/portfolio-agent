@@ -11,7 +11,7 @@
  * 可存储 25~200 个会话。超限时自动清理最旧的会话。
  */
 
-import type { SessionData, SessionMemory } from './types';
+import type { SessionData, SessionMemory, DisplayMessage } from './types';
 import { toSerializable, fromSerializable } from './memory';
 
 const SESSION_VERSION = 1;
@@ -43,14 +43,20 @@ export function generateSessionId(): string {
 /**
  * 保存会话。同一 sessionId 始终覆盖。
  * 不传 sessionId 则自动生成。
+ * displayMessages 为完整展示历史（与 LLM 上下文独立）。
  * 返回实际使用的 sessionId。
  */
-export function saveSession(memory: SessionMemory, sessionId?: string): string {
+export function saveSession(
+    memory: SessionMemory,
+    sessionId?: string,
+    displayMessages?: DisplayMessage[],
+): string {
     const sid = sessionId ?? generateSessionId();
     const data: SessionData = {
         version: SESSION_VERSION,
         savedAt: new Date().toISOString(),
         memory: toSerializable(memory),
+        displayMessages,
     };
 
     try {
@@ -159,7 +165,7 @@ function updateIndex(sessionId: string, data: SessionData): void {
     const entry: SessionIndexItem = {
         sessionId,
         savedAt: data.savedAt,
-        messageCount: data.memory.recentMessages.length,
+        messageCount: data.displayMessages?.length ?? data.memory.recentMessages.length,
     };
 
     if (existing >= 0) {

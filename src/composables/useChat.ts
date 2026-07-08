@@ -27,6 +27,7 @@ import { loadConfig, type AppConfig } from '@/utils/env';
 import { resolvePortfolioApi } from '@/api/portfolioApi';
 import type { AgentState, AgentLifecycleState } from '@/agent/types';
 import type { ToolContext } from '@/tools/types';
+import type { DisplayMessage } from '@/session/types';
 
 export interface ChatMessage {
     id: string;
@@ -57,6 +58,18 @@ export function useChat() {
 
     function refreshSessions() {
         sessions.value = listSessions();
+    }
+
+    /** 将展示层消息转为持久化格式（仅 user + assistant）。 */
+    function toDisplayMessages(): DisplayMessage[] {
+        return messages
+            .filter((m) => m.role === 'user' || m.role === 'assistant')
+            .map((m) => ({
+                role: m.role as 'user' | 'assistant',
+                content: m.content,
+                timestamp: m.timestamp,
+                toolCalls: m.toolCalls,
+            }));
     }
 
     // ========================================================================
@@ -110,7 +123,7 @@ export function useChat() {
         if (saved) {
             state.memory = saved.memory;
             sessionId.value = saved.sessionId;
-            rebuildMessages(saved.memory);
+            rebuildMessages(saved.memory, saved.displayMessages);
             state.userInteractionCount = saved.memory.recentMessages.filter(
                 (m) => m.role === 'user',
             ).length;
@@ -169,12 +182,19 @@ export function useChat() {
     }
 
     /**
-     * 从 SessionMemory 重建前端消息列表（恢复会话时用）。
-     * 只取 user 和 assistant 消息（system / tool 是内部的）。
+     * 从持久化数据重建前端消息列表（恢复会话时用）。
+     * 优先使用 displayMessages（完整展示历史）；
+     * 回退到 memory.recentMessages（兼容旧数据）。
      */
-    function rebuildMessages(memory: import('@/session/types').SessionMemory) {
+    function rebuildMessages(
+        memory: import('@/session/types').SessionMemory,
+        displayMessages?: import('@/session/types').DisplayMessage[],
+    ) {
         messages.splice(0, messages.length);
-        for (const msg of memory.recentMessages) {
+        const source = displayMessages ?? memory.recentMessages.filter(
+            (m) => m.role === 'user' || m.role === 'assistant',
+        );
+        for (const msg of source) {
             if (msg.role === 'user') {
                 addMessage('user', msg.content);
             } else if (msg.role === 'assistant' && msg.content) {
@@ -183,6 +203,8 @@ export function useChat() {
                     chatMsg.toolCalls = msg.toolCalls.map((tc) => ({
                         name: tc.name,
                         input: tc.input,
+                        ...(tc.ok !== undefined && { ok: tc.ok }),
+                        ...(tc.preview !== undefined && { preview: tc.preview }),
                     }));
                 }
             }
@@ -234,11 +256,9 @@ export function useChat() {
             isGenerating.value = false;
             agentState.value = 'idle';
 
-            // 自动保存会话
-            persistSession();
-
-            // 检查是否需要上下文压缩
+            // 先压缩上下文，再持久化（确保摘要结果被保存）
             await maybeSummarize(state);
+            persistSession();
         }
     }
 
@@ -248,7 +268,11 @@ export function useChat() {
 
     function persistSession() {
         if (!state) return;
-        sessionId.value = saveSession(state.memory, sessionId.value ?? undefined);
+        sessionId.value = saveSession(
+            state.memory,
+            sessionId.value ?? undefined,
+            toDisplayMessages(),
+        );
         refreshSessions();
     }
 
@@ -289,7 +313,7 @@ export function useChat() {
 
         state.memory = saved.memory;
         sessionId.value = saved.sessionId;
-        rebuildMessages(saved.memory);
+        rebuildMessages(saved.memory, saved.displayMessages);
         state.userInteractionCount = saved.memory.recentMessages.filter(
             (m) => m.role === 'user',
         ).length;

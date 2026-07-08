@@ -32,10 +32,26 @@ export interface SessionMemory {
 }
 
 /**
+ * 展示层消息（持久化用，与 LLM 上下文独立）。
+ */
+export interface DisplayMessage {
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: number;
+    toolCalls?: Array<{
+        name: string;
+        input: unknown;
+        ok?: boolean;
+        preview?: string;
+    }>;
+}
+
+/**
  * 持久化格式。
  */
 export interface SessionData {
     version: 1;
     savedAt: string;
     memory: SessionMemory;
+    displayMessages?: DisplayMessage[];
 }
