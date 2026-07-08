@@ -1,11 +1,47 @@
 /**
- * 环境变量工具
+ * 运行时配置。
  *
- * 前端只读取非敏感配置。API key 由代理层注入。
+ * 从 /config.json 加载，部署后可直接修改，无需重新构建。
+ * API key 仍由代理层注入，这里只存非敏感配置。
  */
 
-export const BASE_URL = import.meta.env.VITE_API_BASE || ''
+export interface AppConfig {
+  provider: 'openai' | 'anthropic'
+  model: string
+  summaryModel?: string
+  githubUsername?: string
+}
 
-export const LLM_PROVIDER = import.meta.env.VITE_LLM_PROVIDER || 'openai'
-export const LLM_MODEL = import.meta.env.VITE_LLM_MODEL || 'gpt-4o'
-export const GITHUB_USERNAME = import.meta.env.VITE_GITHUB_USERNAME || ''
+let cached: AppConfig | null = null
+
+const DEFAULTS: AppConfig = {
+    provider: 'anthropic',
+    model: '',
+    summaryModel: '',
+    githubUsername: '',
+};
+
+export async function loadConfig(): Promise<AppConfig> {
+    if (cached) return cached;
+
+    try {
+        const res = await fetch('/config.json');
+        if (res.ok) {
+            const data = await res.json();
+            cached = { ...DEFAULTS, ...data };
+        } else {
+            cached = { ...DEFAULTS };
+        }
+    } catch {
+        cached = { ...DEFAULTS };
+    }
+
+    return cached;
+}
+
+export function getConfig(): AppConfig {
+    if (!cached) {
+        throw new Error('配置未加载，请先调用 loadConfig()');
+    }
+    return cached;
+}
