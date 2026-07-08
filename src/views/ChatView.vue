@@ -54,11 +54,12 @@ const sessionTitle = computed(() => {
                 <h2 class="session-title">{{ sessionTitle }}</h2>
             </div>
 
-            <ChatContainer
-                :messages="messages"
-                :agent-state="agentState"
-                class="message-area"
-            />
+            <div class="message-area">
+                <ChatContainer
+                    :messages="messages"
+                    :agent-state="agentState"
+                />
+            </div>
 
             <div v-if="error" class="error-bar">
                 {{ error }}

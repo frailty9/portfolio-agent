@@ -35,7 +35,7 @@ watch(
 </script>
 
 <template>
-  <div ref="scrollRef" class="overflow-y-auto px-6 py-4 space-y-4">
+  <div ref="scrollRef" class="overflow-y-auto px-6 py-4 space-y-4" style="height: 100%">
     <!-- 空状态 -->
     <div v-if="messages.length === 0" class="flex items-center justify-center h-full">
       <div class="text-center" style="color: var(--color-text-secondary)">
