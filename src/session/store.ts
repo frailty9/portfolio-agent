@@ -26,6 +26,7 @@ const MAX_SESSIONS = 30;
 export interface SessionIndexItem {
     sessionId: string;
     savedAt: string;
+    title: string;
     messageCount: number;
 }
 
@@ -162,9 +163,11 @@ function setIndex(index: SessionIndexItem[]): void {
 function updateIndex(sessionId: string, data: SessionData): void {
     const index = getIndex();
     const existing = index.findIndex((item) => item.sessionId === sessionId);
+    const firstUserMsg = data.displayMessages?.find((m) => m.role === 'user');
     const entry: SessionIndexItem = {
         sessionId,
         savedAt: data.savedAt,
+        title: firstUserMsg?.content?.slice(0, 40) || '新会话',
         messageCount: data.displayMessages?.length ?? data.memory.recentMessages.length,
     };
 

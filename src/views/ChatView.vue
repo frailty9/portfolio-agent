@@ -27,8 +27,8 @@ onMounted(() => {
 
 const sessionTitle = computed(() => {
     if (!currentSessionId.value) return '新会话';
-    const s = sessions.value.find((s) => s.id === currentSessionId.value);
-    return s?.title ?? '新会话';
+    const s = sessions.value.find((s) => s.sessionId === currentSessionId.value);
+    return s?.title || '新会话';
 });
 </script>
 

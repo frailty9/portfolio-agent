@@ -13,7 +13,7 @@ const emit = defineEmits<{
   new: []
 }>()
 
-function formatTime(ts: number): string {
+function formatTime(ts: string): string {
   const d = new Date(ts)
   const now = new Date()
   const isToday =
@@ -26,7 +26,8 @@ function formatTime(ts: number): string {
   return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
 }
 
-function truncate(text: string, max: number): string {
+function truncate(text: string | undefined, max: number): string {
+  if (!text) return '新会话'
   return text.length <= max ? text : text.slice(0, max) + '…'
 }
 </script>
@@ -45,19 +46,19 @@ function truncate(text: string, max: number): string {
     <div class="session-items">
       <div
         v-for="session in sessions"
-        :key="session.id"
+        :key="session.sessionId"
         class="session-item"
-        :class="{ active: session.id === currentId }"
-        @click="emit('select', session.id)"
+        :class="{ active: session.sessionId === currentId }"
+        @click="emit('select', session.sessionId)"
       >
         <div class="session-info">
           <div class="session-title">{{ truncate(session.title, 20) }}</div>
-          <div class="session-time">{{ formatTime(session.updatedAt) }}</div>
+          <div class="session-time">{{ formatTime(session.savedAt) }}</div>
         </div>
         <button
           class="delete-btn"
           :disabled="isGenerating"
-          @click.stop="emit('delete', session.id)"
+          @click.stop="emit('delete', session.sessionId)"
           title="删除会话"
         >
           ×
