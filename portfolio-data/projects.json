@@ -1,0 +1,39 @@
+[
+  {
+    "name": "DocForge",
+    "description": "AI 驱动的文档生成工具，支持多轮对话、工具调用、会话管理。采用 Agent Loop 架构，可自动分析项目并生成 README。",
+    "techStack": ["TypeScript", "Node.js", "Anthropic API", "OpenAI API"],
+    "github": "https://github.com/your-username/docforge",
+    "role": "独立开发",
+    "highlights": [
+      "实现完整的 Agent Loop 架构",
+      "支持 11 种内置工具（文件读写、搜索、命令执行等）",
+      "双 LLM Provider 适配（Anthropic + OpenAI）",
+      "滑动窗口会话记忆 + 自动摘要"
+    ]
+  },
+  {
+    "name": "SSE Demo",
+    "description": "SSE 流式通信演示项目，展示了从底层封装到应用层控制器的完整分层架构。",
+    "techStack": ["Vue 3", "TypeScript", "Vite", "SSE"],
+    "github": "https://github.com/your-username/sse-demo",
+    "role": "独立开发",
+    "highlights": [
+      "三层封装：fetch-event-source → SSE Helper → SSE Controller",
+      "支持字符串流和 JSON 对象流",
+      "链式回调 API 设计"
+    ]
+  },
+  {
+    "name": "Portfolio Agent",
+    "description": "你正在看的这个项目！一个能回答关于作品集问题的 AI 助手，支持工具调用。",
+    "techStack": ["Vue 3", "TypeScript", "Vite", "Tailwind CSS", "OpenAI API", "Anthropic API"],
+    "github": "https://github.com/your-username/portfolio-agent",
+    "role": "独立开发",
+    "highlights": [
+      "纯前端 Agent Loop 架构",
+      "API key 由代理层注入，前端零密钥",
+      "4 个专属工具：作品集读取、项目列表、GitHub 搜索、内容搜索"
+    ]
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "languages": [
+    { "name": "TypeScript", "level": "精通", "years": 4 },
+    { "name": "JavaScript", "level": "精通", "years": 5 },
+    { "name": "Python", "level": "熟练", "years": 3 },
+    { "name": "Go", "level": "了解", "years": 1 }
+  ],
+  "frontend": [
+    { "name": "Vue", "level": "精通", "detail": "Vue 3 Composition API、Pinia、Vue Router" },
+    { "name": "React", "level": "熟练", "detail": "Hooks、Next.js" },
+    { "name": "Tailwind CSS", "level": "精通" },
+    { "name": "Vite", "level": "精通", "detail": "插件开发、构建优化" }
+  ],
+  "backend": [
+    { "name": "Node.js", "level": "精通", "detail": "Express、Koa、原生 HTTP" },
+    { "name": "PostgreSQL", "level": "熟练" },
+    { "name": "Redis", "level": "熟练" }
+  ],
+  "devops": [
+    { "name": "Docker", "level": "熟练" },
+    { "name": "Nginx", "level": "熟练" },
+    { "name": "CI/CD", "level": "熟练", "detail": "GitHub Actions" }
+  ],
+  "ai": [
+    { "name": "LLM 应用开发", "level": "熟练", "detail": "Agent Loop、工具调用、多 Provider 适配" },
+    { "name": "Prompt Engineering", "level": "熟练" }
+  ],
+  "architecture": [
+    "前端工程化",
+    "组件库设计",
+    "SSE 流式通信",
+    "Agent Loop 架构",
+    "Monorepo 管理"
+  ]
+}

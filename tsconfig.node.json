@@ -1,0 +1,12 @@
+{
+  "extends": "@tsconfig/node22/tsconfig",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "outDir": "temp/node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["vite.config.ts"]
+}

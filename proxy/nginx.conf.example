@@ -1,0 +1,51 @@
+# Nginx 反向代理配置示例
+#
+# 用于生产环境，将 /api/ 请求代理到对应的外部 API，
+# 并注入 API key（通过环境变量或直接配置）。
+#
+# 使用方式：
+#   1. 复制本文件为 nginx.conf
+#   2. 替换 ${...} 变量为实际值
+#   3. nginx -c /path/to/nginx.conf
+
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    # 前端静态文件
+    root /path/to/portfolio-agent/dist;
+    index index.html;
+
+    # OpenAI API 代理
+    location /api/llm/openai/ {
+        proxy_pass https://api.openai.com/v1/;
+        proxy_set_header Host api.openai.com;
+        proxy_ssl_server_name on;
+        proxy_set_header Authorization "Bearer ${OPENAI_API_KEY}";
+        proxy_set_header Content-Type "application/json";
+    }
+
+    # Anthropic API 代理
+    location /api/llm/anthropic/ {
+        proxy_pass https://api.anthropic.com/v1/;
+        proxy_set_header Host api.anthropic.com;
+        proxy_ssl_server_name on;
+        proxy_set_header x-api-key "${ANTHROPIC_API_KEY}";
+        proxy_set_header anthropic-version "2023-06-01";
+        proxy_set_header Content-Type "application/json";
+    }
+
+    # GitHub API 代理
+    location /api/github/ {
+        proxy_pass https://api.github.com/;
+        proxy_set_header Host api.github.com;
+        proxy_ssl_server_name on;
+        proxy_set_header Authorization "token ${GITHUB_TOKEN}";
+        proxy_set_header Accept "application/vnd.github.v3+json";
+    }
+
+    # Vue Router history mode
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
