@@ -4,3 +4,4 @@ temp
 .env
 .env.local
 *.local
+public/config.json

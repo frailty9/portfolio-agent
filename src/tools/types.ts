@@ -21,8 +21,6 @@ export interface ToolSpec {
 
 /** 工具执行上下文 */
 export interface ToolContext {
-  /** 项目数据根路径（前端为 /portfolio-data） */
-  dataPath: string
   /** GitHub 用户名（可选） */
   githubUsername?: string
 }

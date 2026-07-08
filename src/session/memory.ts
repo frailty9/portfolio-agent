@@ -5,7 +5,7 @@
  */
 
 import type { LlmMessage } from '@/llm/types';
-import type { SessionMemory } from './types';
+import type { SessionMemory, PortfolioApiEndpoint } from './types';
 
 const DEFAULT_MAX_RECENT = 40;
 
@@ -17,6 +17,8 @@ export function createMemory(maxRecent = DEFAULT_MAX_RECENT): SessionMemory {
         projectContext: {
             constraints: [],
             findings: [],
+            portfolioApis: [],
+            portfolioApiBaseUrl: '',
         },
     };
 }
@@ -47,6 +49,17 @@ export function addFinding(mem: SessionMemory, finding: string): void {
     }
 }
 
+export function setPortfolioApis(
+    mem: SessionMemory,
+    apis: PortfolioApiEndpoint[],
+    baseUrl?: string,
+): void {
+    mem.projectContext.portfolioApis = apis;
+    if (baseUrl) {
+        mem.projectContext.portfolioApiBaseUrl = baseUrl;
+    }
+}
+
 export function toSerializable(mem: SessionMemory): SessionMemory {
     return {
         recentMessages: mem.recentMessages.map((m) => ({ ...m })),
@@ -55,6 +68,8 @@ export function toSerializable(mem: SessionMemory): SessionMemory {
         projectContext: {
             constraints: [...mem.projectContext.constraints],
             findings: [...mem.projectContext.findings],
+            portfolioApis: [...mem.projectContext.portfolioApis],
+            portfolioApiBaseUrl: mem.projectContext.portfolioApiBaseUrl,
         },
     };
 }
@@ -70,12 +85,20 @@ export function toPromptContext(mem: SessionMemory): string {
         parts.push(`[当前任务]\n${mem.taskSummary}`);
     }
 
-    const { constraints, findings } = mem.projectContext;
+    const { constraints, findings, portfolioApis } = mem.projectContext;
     if (constraints.length > 0) {
         parts.push(`[用户约束]\n${constraints.map((c) => `- ${c}`).join('\n')}`);
     }
     if (findings.length > 0) {
         parts.push(`[项目认知]\n${findings.map((f) => `- ${f}`).join('\n')}`);
+    }
+    if (portfolioApis.length > 0) {
+        const baseUrl = mem.projectContext.portfolioApiBaseUrl;
+        const lines = portfolioApis.map((api) => {
+            const fullUrl = baseUrl ? `${baseUrl}${api.path}` : api.path;
+            return `- ${api.method} ${fullUrl} — ${api.summary}`;
+        });
+        parts.push(`[可用 API]\n${lines.join('\n')}`);
     }
 
     return parts.join('\n\n');
@@ -99,6 +122,13 @@ export function fromSerializable(data: unknown): SessionMemory {
                 ? d.projectContext.constraints
                 : [],
             findings: Array.isArray(d.projectContext?.findings) ? d.projectContext.findings : [],
+            portfolioApis: Array.isArray(d.projectContext?.portfolioApis)
+                ? d.projectContext.portfolioApis
+                : [],
+            portfolioApiBaseUrl:
+                typeof d.projectContext?.portfolioApiBaseUrl === 'string'
+                    ? d.projectContext.portfolioApiBaseUrl
+                    : '',
         },
     };
 }
@@ -126,7 +156,6 @@ function trimToMax(mem: SessionMemory): void {
     const nonSystemTotal = msgs.length - systemCount;
     let trimStart = systemCount + (nonSystemTotal - nonSystemKeep);
 
-    // 不落在 tool result 序列中间
     while (trimStart > systemCount && trimStart < msgs.length && msgs[trimStart].role === 'tool') {
         trimStart--;
     }

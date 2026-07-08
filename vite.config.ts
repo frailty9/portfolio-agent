@@ -6,7 +6,55 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
 
     return {
-        plugins: [vue()],
+        plugins: [
+            vue(),
+            // Web Fetch 中间件 — 服务端代理，解决 CORS
+            {
+                name: 'webfetch-middleware',
+                configureServer(server) {
+                    server.middlewares.use('/api/webfetch/', async (req, res) => {
+                        // 从路径中提取目标 URL
+                        const raw = req.url?.replace(/^\//, '') ?? '';
+                        const decoded = decodeURIComponent(raw);
+
+                        let targetUrl: URL;
+                        try {
+                            targetUrl = new URL(decoded);
+                        } catch {
+                            res.statusCode = 400;
+                            res.end(JSON.stringify({ error: `无效的 URL: ${decoded}` }));
+                            return;
+                        }
+
+                        try {
+                            const response = await fetch(targetUrl.href, {
+                                method: 'GET',
+                                headers: {
+                                    'User-Agent': 'PortfolioAgent/1.0',
+                                    Accept: 'text/html, text/plain, application/json, */*',
+                                },
+                                redirect: 'follow',
+                                signal: AbortSignal.timeout(15000),
+                            });
+
+                            res.statusCode = response.status;
+                            res.setHeader('Content-Type', response.headers.get('content-type') ?? 'text/plain');
+                            res.setHeader('Access-Control-Allow-Origin', '*');
+
+                            const body = await response.text();
+                            res.end(body);
+                        } catch (err) {
+                            res.statusCode = 502;
+                            res.end(
+                                JSON.stringify({
+                                    error: `代理请求失败: ${err instanceof Error ? err.message : String(err)}`,
+                                }),
+                            );
+                        }
+                    });
+                },
+            },
+        ],
         resolve: {
             alias: {
                 '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -51,43 +99,6 @@ export default defineConfig(({ mode }) => {
                                 proxyReq.setHeader('Authorization', `token ${env.GITHUB_TOKEN}`);
                             }
                         });
-                    },
-                },
-                // Web Fetch 代理 — 动态目标，URL 编码在路径中
-                // 前端调用: /api/webfetch/https%3A%2F%2Fexample.com/path
-                '/api/webfetch': {
-                    target: 'http://localhost:0', // 占位，实际由 configure 动态设置
-                    changeOrigin: true,
-                    configure: (proxy) => {
-                        proxy.on('proxyReq', (proxyReq, req) => {
-                            // 从请求路径中提取目标 URL
-                            const raw = req.url?.replace(/^\/api\/webfetch\//, '') ?? '';
-                            const decoded = decodeURIComponent(raw);
-                            try {
-                                const url = new URL(decoded);
-                                // 重写请求路径为目标 URL 的 path + search
-                                proxyReq.path = url.pathname + url.search;
-                                // 动态切换 target
-                                proxyReq.setHeader('host', url.host);
-                            } catch {
-                                // URL 解析失败，保持原样
-                            }
-                        });
-                        // 动态设置 target
-                        proxy.on('proxyReqWs', (_proxyReq, _req, _socket, _options, _head) => {
-                            // noop
-                        });
-                    },
-                    router: (req) => {
-                        // 从请求路径中提取目标 URL 的 origin
-                        const raw = req.url?.replace(/^\/api\/webfetch\//, '') ?? '';
-                        const decoded = decodeURIComponent(raw);
-                        try {
-                            const url = new URL(decoded);
-                            return url.origin;
-                        } catch {
-                            return 'https://example.com';
-                        }
                     },
                 },
             },

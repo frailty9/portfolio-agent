@@ -5,13 +5,14 @@
  * Agent Loop 在浏览器端运行，通过 AgentEventSink 回调驱动 UI 更新。
  * 配置从 /config.json 运行时加载。
  * 会话自动持久化到 localStorage，支持多会话管理。
+ * Portfolio API 在首次发消息前隐式解析并注入上下文。
  */
 
 import { ref, reactive } from 'vue';
 import { createAgentState } from '@/agent/state';
 import { runAgentLoop } from '@/agent/loop';
 import { maybeSummarize } from '@/agent/summarize';
-import { pushMessage } from '@/session/memory';
+import { pushMessage, setPortfolioApis } from '@/session/memory';
 import {
     saveSession,
     loadLatestSession,
@@ -22,7 +23,8 @@ import {
     type SessionIndexItem,
 } from '@/session/store';
 import { setDefaultProvider } from '@/llm/index';
-import { loadConfig } from '@/utils/env';
+import { loadConfig, type AppConfig } from '@/utils/env';
+import { resolvePortfolioApi } from '@/api/portfolioApi';
 import type { AgentState, AgentLifecycleState } from '@/agent/types';
 import type { ToolContext } from '@/tools/types';
 
@@ -50,18 +52,19 @@ export function useChat() {
 
     let state: AgentState | null = null;
     let sessionId: string | null = null;
+    let appConfig: AppConfig | null = null;
+    let portfolioApiResolved = false;
 
     // ========================================================================
     // 初始化 + 会话恢复
     // ========================================================================
 
     async function init() {
-        const config = await loadConfig();
-        setDefaultProvider(config.provider, config.model, config.summaryModel);
+        appConfig = await loadConfig();
+        setDefaultProvider(appConfig.provider, appConfig.model, appConfig.summaryModel);
 
         const ctx: ToolContext = {
-            dataPath: '/portfolio-data',
-            githubUsername: config.githubUsername || undefined,
+            githubUsername: appConfig.githubUsername || undefined,
         };
 
         state = createAgentState({
@@ -103,15 +106,46 @@ export function useChat() {
         if (saved) {
             state.memory = saved.memory;
             sessionId = saved.sessionId;
-            // 从 memory 重建前端消息列表
             rebuildMessages(saved.memory);
-            // 同步交互计数（用于摘要触发判断）
             state.userInteractionCount = saved.memory.recentMessages.filter(
                 (m) => m.role === 'user',
             ).length;
+            // 如果恢复的会话已有 portfolioApis，标记已解析
+            if (saved.memory.projectContext.portfolioApis.length > 0) {
+                portfolioApiResolved = true;
+            }
         }
 
         configLoaded.value = true;
+    }
+
+    // ========================================================================
+    // Portfolio API 解析（隐式等待）
+    // ========================================================================
+
+    /**
+     * 确保 Portfolio API 已解析。
+     * 在用户第一条消息发给 LLM 之前调用。
+     * 如果已解析或无配置，直接返回。
+     * 否则阻塞直到解析完成。
+     */
+    async function ensurePortfolioApiResolved(): Promise<void> {
+        if (portfolioApiResolved) return;
+        if (!appConfig?.portfolioApi) {
+            portfolioApiResolved = true;
+            return;
+        }
+        if (!state) return;
+
+        try {
+            const endpoints = await resolvePortfolioApi(appConfig.portfolioApi);
+            setPortfolioApis(state.memory, endpoints, appConfig.portfolioApi.baseUrl);
+            portfolioApiResolved = true;
+        } catch (err) {
+            // 解析失败不阻塞主流程，但标记为已尝试
+            portfolioApiResolved = true;
+            console.error('Portfolio API 解析失败:', err);
+        }
     }
 
     // ========================================================================
@@ -172,6 +206,9 @@ export function useChat() {
         state.userInteractionCount++;
 
         try {
+            // 隐式等待：在 LLM 调用前确保 Portfolio API 已解析
+            await ensurePortfolioApiResolved();
+
             const { stopped, finalText } = await runAgentLoop(state);
 
             if (assistantMsg.content === '' && finalText) {
@@ -215,7 +252,6 @@ export function useChat() {
             const systemMsgs = state.memory.recentMessages.filter((m) => m.role === 'system');
             state.memory.recentMessages = systemMsgs;
         }
-        // 清空后保存（会覆盖当前会话为只有 system 的状态）
         persistSession();
     }
 
@@ -224,7 +260,6 @@ export function useChat() {
      */
     function newSession() {
         if (!state) return;
-        // 断开与当前 sessionId 的关联，下次 save 会生成新 ID
         sessionId = null;
         messages.splice(0, messages.length);
         const systemMsgs = state.memory.recentMessages.filter((m) => m.role === 'system');
@@ -232,8 +267,10 @@ export function useChat() {
         state.memory.taskSummary = '';
         state.memory.projectContext.constraints = [];
         state.memory.projectContext.findings = [];
+        state.memory.projectContext.portfolioApis = [];
         state.userInteractionCount = 0;
         state.lastSummaryAt = 0;
+        portfolioApiResolved = false;
     }
 
     /**
@@ -249,6 +286,7 @@ export function useChat() {
         state.userInteractionCount = saved.memory.recentMessages.filter(
             (m) => m.role === 'user',
         ).length;
+        portfolioApiResolved = saved.memory.projectContext.portfolioApis.length > 0;
         return true;
     }
 

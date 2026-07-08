@@ -1,0 +1,10 @@
+{
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-20250514",
+  "summaryModel": "",
+  "githubUsername": "",
+  "portfolioApi": {
+    "baseUrl": "https://your-portfolio.com",
+    "url": "https://your-portfolio.com/api-docs.md"
+  }
+}
