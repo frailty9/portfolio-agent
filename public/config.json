@@ -1,6 +1,0 @@
-{
-  "provider": "anthropic",
-  "model": "MiniMax-M3",
-  "summaryModel": "MiniMax-M2.7",
-  "githubUsername": ""
-}
