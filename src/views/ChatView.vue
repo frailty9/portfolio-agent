@@ -24,6 +24,9 @@ onMounted(() => {
     init();
 });
 
+/** ?embed=true 时隐藏侧边栏（iframe 嵌入场景） */
+const embed = computed(() => new URL(window.location.href).searchParams.get('embed') === 'true');
+
 const sessionTitle = computed(() => {
     if (!currentSessionId.value) return '新会话';
     const s = sessions.value.find((s) => s.sessionId === currentSessionId.value);
@@ -33,8 +36,8 @@ const sessionTitle = computed(() => {
 
 <template>
     <div class="root-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
+        <!-- Sidebar（embed 模式隐藏） -->
+        <aside v-if="!embed" class="sidebar">
             <div class="sidebar-header">
                 <h1 class="app-title">Portfolio Agent</h1>
             </div>
