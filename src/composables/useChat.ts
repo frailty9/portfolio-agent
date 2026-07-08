@@ -51,9 +51,13 @@ export function useChat() {
     const configLoaded = ref(false);
 
     let state: AgentState | null = null;
-    let sessionId: string | null = null;
+    const sessionId = ref<string | null>(null);
     let appConfig: AppConfig | null = null;
     let portfolioApiResolved = false;
+
+    function refreshSessions() {
+        sessions.value = listSessions();
+    }
 
     // ========================================================================
     // 初始化 + 会话恢复
@@ -105,7 +109,7 @@ export function useChat() {
         const saved = loadLatestSession();
         if (saved) {
             state.memory = saved.memory;
-            sessionId = saved.sessionId;
+            sessionId.value = saved.sessionId;
             rebuildMessages(saved.memory);
             state.userInteractionCount = saved.memory.recentMessages.filter(
                 (m) => m.role === 'user',
@@ -116,6 +120,7 @@ export function useChat() {
             }
         }
 
+        refreshSessions();
         configLoaded.value = true;
     }
 
@@ -243,7 +248,8 @@ export function useChat() {
 
     function persistSession() {
         if (!state) return;
-        sessionId = saveSession(state.memory, sessionId ?? undefined);
+        sessionId.value = saveSession(state.memory, sessionId.value ?? undefined);
+        refreshSessions();
     }
 
     function clearMessages() {
@@ -260,7 +266,7 @@ export function useChat() {
      */
     function newSession() {
         if (!state) return;
-        sessionId = null;
+        sessionId.value = null;
         messages.splice(0, messages.length);
         const systemMsgs = state.memory.recentMessages.filter((m) => m.role === 'system');
         state.memory.recentMessages = systemMsgs;
@@ -271,6 +277,7 @@ export function useChat() {
         state.userInteractionCount = 0;
         state.lastSummaryAt = 0;
         portfolioApiResolved = false;
+        refreshSessions();
     }
 
     /**
@@ -281,7 +288,7 @@ export function useChat() {
         if (!saved || !state) return false;
 
         state.memory = saved.memory;
-        sessionId = saved.sessionId;
+        sessionId.value = saved.sessionId;
         rebuildMessages(saved.memory);
         state.userInteractionCount = saved.memory.recentMessages.filter(
             (m) => m.role === 'user',
@@ -302,8 +309,10 @@ export function useChat() {
      */
     function deleteSessionById(id: string) {
         deleteSession(id);
-        if (sessionId === id) {
+        if (sessionId.value === id) {
             newSession();
+        } else {
+            refreshSessions();
         }
     }
 
@@ -317,6 +326,8 @@ export function useChat() {
 
     return {
         messages,
+        sessions,
+        currentSessionId: sessionId,
         isGenerating,
         agentState,
         error,
