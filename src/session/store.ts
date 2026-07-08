@@ -120,6 +120,18 @@ export function deleteSession(sessionId: string): void {
 }
 
 /**
+ * 更新会话标题（仅修改索引，不重写完整数据）。
+ */
+export function updateSessionTitle(sessionId: string, title: string): void {
+    const index = getIndex();
+    const item = index.find((i) => i.sessionId === sessionId);
+    if (item) {
+        item.title = title;
+        setIndex(index);
+    }
+}
+
+/**
  * 删除所有会话。
  */
 export function deleteAllSessions(): void {

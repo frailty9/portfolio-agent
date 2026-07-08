@@ -18,6 +18,7 @@
 
 import { buildSummaryPrompt, parseSummaryResponse } from '@/prompt/summary';
 import { addConstraint, addFinding } from '@/session/memory';
+import { updateSessionTitle, listSessions } from '@/session/store';
 import { summarize } from '@/llm/index';
 import type { AgentState } from './types';
 
@@ -28,7 +29,7 @@ const SUMMARY_THRESHOLD = 0.8;
  * 检查是否需要触发摘要，如果需要则调 LLM 生成并写入 memory。
  * 每次用户交互后调用。
  */
-export async function maybeSummarize(state: AgentState): Promise<void> {
+export async function maybeSummarize(state: AgentState, sessionId?: string | null): Promise<void> {
     const mem = state.memory;
     const count = state.userInteractionCount;
     if (count === 0) return;
@@ -38,13 +39,19 @@ export async function maybeSummarize(state: AgentState): Promise<void> {
     if (!intervalHit && !thresholdHit) return;
 
     try {
-        const summaryMessages = buildSummaryPrompt(mem.recentMessages);
+        const currentTitle = sessionId
+            ? listSessions().find((s) => s.sessionId === sessionId)?.title
+            : undefined;
+        const summaryMessages = buildSummaryPrompt(mem.recentMessages, currentTitle);
         const result = await summarize(summaryMessages);
         if (result.content) {
             const parsed = parseSummaryResponse(result.content);
             mem.taskSummary = parsed.summary;
             for (const c of parsed.constraints) addConstraint(mem, c);
             for (const f of parsed.findings) addFinding(mem, f);
+            if (parsed.newTitle && sessionId) {
+                updateSessionTitle(sessionId, parsed.newTitle);
+            }
             state.lastSummaryAt = count;
         }
     } catch {

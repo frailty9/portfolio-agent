@@ -259,7 +259,7 @@ export function useChat() {
             agentState.value = 'idle';
 
             // 先压缩上下文，再持久化（确保摘要结果被保存）
-            await maybeSummarize(state);
+            await maybeSummarize(state, sessionId.value);
             persistSession();
         }
     }
