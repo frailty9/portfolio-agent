@@ -56,6 +56,8 @@ export function useChat() {
     let appConfig: AppConfig | null = null;
     let portfolioApiResolved = false;
 
+    const sessions = ref<SessionIndexItem[]>([]);
+
     function refreshSessions() {
         sessions.value = listSessions();
     }
