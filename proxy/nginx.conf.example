@@ -44,6 +44,18 @@ server {
         proxy_set_header Accept "application/vnd.github.v3+json";
     }
 
+    # Web Fetch 代理
+    # Nginx 不支持动态 proxy_pass，需要用 Lua 或外部服务。
+    # 推荐方案：部署一个轻量 Node.js 代理服务处理 /api/webfetch/。
+    # 或使用 openresty 的 ngx_http_lua_module：
+    #
+    # location /api/webfetch/ {
+    #     content_by_lua_block {
+    #         local url = ngx.unescape_uri(ngx.var.uri:sub(16))
+    #         -- 解析 URL 并用 ngx.location.capture 转发
+    #     }
+    # }
+
     # Vue Router history mode
     location / {
         try_files $uri $uri/ /index.html;

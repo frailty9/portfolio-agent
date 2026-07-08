@@ -7,6 +7,7 @@ import { readPortfolioTool } from './builtin/readPortfolio'
 import { listProjectsTool } from './builtin/listProjects'
 import { searchGithubTool } from './builtin/searchGithub'
 import { contentSearchTool } from './builtin/contentSearch'
+import { webFetchTool } from './builtin/webFetch'
 import type { ToolSpec } from './types'
 
 // 注册所有内置工具
@@ -14,6 +15,7 @@ registerTool(readPortfolioTool)
 registerTool(listProjectsTool)
 registerTool(searchGithubTool)
 registerTool(contentSearchTool)
+registerTool(webFetchTool)
 
 export { findTool, getAllTools }
 

@@ -54,3 +54,4 @@ location /api/llm/openai/ {
 | `/api/llm/openai/*` | `https://api.openai.com/v1/*` | `Authorization: Bearer $OPENAI_API_KEY` |
 | `/api/llm/anthropic/*` | `https://api.anthropic.com/v1/*` | `x-api-key: $ANTHROPIC_API_KEY` |
 | `/api/github/*` | `https://api.github.com/*` | `Authorization: token $GITHUB_TOKEN` |
+| `/api/webfetch/{encoded-url}` | 动态目标（URL 编码在路径中） | 无 |
