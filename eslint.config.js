@@ -2,7 +2,6 @@ import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import pluginVue from 'eslint-plugin-vue';
-import vueParser from 'vue-eslint-parser';
 
 export default [
     // ========== TypeScript 文件 ==========
@@ -41,7 +40,6 @@ export default [
     {
         files: ['src/**/*.vue'],
         languageOptions: {
-            parser: vueParser,
             parserOptions: {
                 parser: tsParser,
                 ecmaVersion: 'latest',
