@@ -4,8 +4,17 @@ import { useChat } from '@/composables/useChat';
 import ChatContainer from '@/components/chat/ChatContainer.vue';
 import ChatInput from '@/components/chat/ChatInput.vue';
 
-const { messages, isGenerating, agentState, error, configLoaded, init, sendMessage, clearMessages } =
-    useChat();
+const {
+    messages,
+    isGenerating,
+    agentState,
+    error,
+    configLoaded,
+    init,
+    sendMessage,
+    clearMessages,
+    newSession,
+} = useChat();
 
 onMounted(() => {
     init();
@@ -27,14 +36,24 @@ onMounted(() => {
                     问我关于这个作品集的任何问题
                 </p>
             </div>
-            <button
-                @click="clearMessages"
-                class="rounded-lg px-3 py-1.5 text-sm transition-colors"
-                style="background: var(--color-surface); color: var(--color-text-secondary)"
-                :disabled="isGenerating"
-            >
-                清空对话
-            </button>
+            <div class="flex gap-2">
+                <button
+                    @click="newSession"
+                    class="rounded-lg px-3 py-1.5 text-sm transition-colors"
+                    style="background: var(--color-surface); color: var(--color-text-secondary)"
+                    :disabled="isGenerating"
+                >
+                    新会话
+                </button>
+                <button
+                    @click="clearMessages"
+                    class="rounded-lg px-3 py-1.5 text-sm transition-colors"
+                    style="background: var(--color-surface); color: var(--color-text-secondary)"
+                    :disabled="isGenerating"
+                >
+                    清空
+                </button>
+            </div>
         </header>
 
         <!-- Messages -->

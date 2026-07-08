@@ -12,6 +12,7 @@
 import { chat } from '@/llm/index'
 import { findTool } from '@/tools/index'
 import { pushMessage } from '@/session/memory'
+import { refreshSystemMessage } from '@/prompt/index'
 import type { LlmMessage, LlmResponse } from '@/llm/types'
 import type { AgentState, AgentStopReason, AgentTurnResult } from './types'
 
@@ -25,6 +26,9 @@ const TOOL_RESULT_MAX_BYTES = 100 * 1024 // 100 KiB
 export async function runAgentLoop(
   state: AgentState,
 ): Promise<{ stopped: AgentStopReason; finalText: string }> {
+  // 刷新 system 消息，注入最新的 taskSummary / constraints / findings
+  refreshSystemMessage(state.memory)
+
   let stopped: AgentStopReason = 'done'
   let finalText = ''
 

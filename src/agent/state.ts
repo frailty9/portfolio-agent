@@ -37,5 +37,7 @@ export function createAgentState(opts: CreateAgentStateOptions): AgentState {
     turn: 0,
     maxTurns: opts.maxTurns ?? DEFAULT_MAX_TURNS,
     maxRecent: opts.maxRecent ?? DEFAULT_MAX_RECENT,
+    userInteractionCount: 0,
+    lastSummaryAt: 0,
   }
 }
